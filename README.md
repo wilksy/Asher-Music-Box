@@ -1,6 +1,6 @@
 # Asher-Music-Box
 An NFC driven music player. PN532 / DFPlayer / ESP8266 driven. 
-Dfplayer code included (pls.not naming)
+Dfplayer code included (use library not this code, kept in case source is updated)
 
 STL included for board holders and usb jack for a rebel rock and roll cube, which this project used (all inside bar speaker ripped out)
 
