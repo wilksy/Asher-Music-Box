@@ -33,21 +33,21 @@ DFPlayerMini_Fast myMP3;
 
 // Program Control Vars
 struct adminSettings {
-  uint8_t VolumeRoundRobin[4] = {5, 15, 20, 25}; //volume is adjust on a round robin 
-  uint8_t initVolume =1; // initial volume level (in array)
+  uint8_t VolumeRoundRobin[4] = {10, 20, 25, 25}; //volume is adjusted on a round robin 
+  uint8_t initVolume =2; // initial volume level (in array)
+  uint8_t DFPlayerProcessDelay = 100; //time for the Audio Player to reset
   bool isCardPresent = false;
   bool isValidCardPresent = false;
   bool isMultipleCardsPresent = false;
   unsigned long LastCardMillis = 0;
   unsigned long LastCardThreshold = 100; // Time to wait until we register a card as being removed
   unsigned long LastProcessedEvent = 0;
-  uint8_t DFPlayerProcessDelay = 100; //time for the Audio Player to rest
+  String CurrentCardUID = "";
+  String PreviousCardUID = "";
 };
 
 adminSettings CurrentSettings;
 
-String CurrentCardUID = "";
-String PreviousCardUID = "";
 
 
 void setup(void) {
@@ -67,7 +67,7 @@ void setup(void) {
   Serial.println(F("Audio online."));
   delay(750); //give time for things to settle and have a cup of tea.
    myMP3.volume(CurrentSettings.VolumeRoundRobin[CurrentSettings.initVolume]);  //Set default volume.
-   myMP3.EQSelect(1); // Set default EQ 
+   myMP3.EQSelect(0); // Set default EQ 
   // EQ_NORMAL       = 0;EQ_POP          = 1;EQ_ROCK         = 2;EQ_JAZZ         = 3;EQ_CLASSIC      = 4; EQ_BASE         = 5;
 
   /*********************************************************************/
@@ -79,13 +79,13 @@ void setup(void) {
   if (! versiondata) {
     Serial.print("PN53x NOT FOUND");
      while (true) {
-      delay(0); // Code to compatible with ESP8266 watch dog.
+      delay(0); // Keep ESP8266 watch dog happy.
     }
   }
 
   // configure read RFID tags
   nfc.SAMConfig();
-  nfc.setPassiveActivationRetries(0x1); // set NFC read attempts to 1. So we can read up to 2 cards and not have the reader block code.
+  nfc.setPassiveActivationRetries(0x1); // set NFC read attempts to 1. So we can read up to 2 cards and not have the nfc block code.
   Serial.println("NFC OK");
 
   /*********************************************************************/
@@ -121,12 +121,12 @@ void loop(void) {
     for (uint8_t i = 0; i < uidLength; i++) {
       tmptag.concat(uid[i]); //convert hex card id to a string (yes i know, strings!!)
     }
-    CurrentCardUID = tmptag;
-    if (PreviousCardUID == "") {
-      PreviousCardUID = tmptag; //first time a card has been presented
+    CurrentSettings.CurrentCardUID = tmptag;
+    if (CurrentSettings.PreviousCardUID == "") {
+      CurrentSettings.PreviousCardUID = tmptag; //first time a card has been presented
     }
 
-    if (PreviousCardUID == tmptag) {//assume single card
+    if (CurrentSettings.PreviousCardUID == tmptag) {//assume single card
       if (!CurrentSettings.isValidCardPresent) {        
         CurrentSettings.isValidCardPresent = true;
         CurrentSettings.isMultipleCardsPresent = false;
@@ -140,14 +140,14 @@ void loop(void) {
       } 
     }
     CurrentSettings.LastCardMillis = millis();
-    PreviousCardUID = tmptag;
+    CurrentSettings.PreviousCardUID = tmptag;
   }
 
   //check for a card removed 
 
   if (((millis() - CurrentSettings.LastCardMillis) > CurrentSettings.LastCardThreshold) && CurrentSettings.isCardPresent) {
-    PreviousCardUID = "";//CurrentCardUID;
-    CurrentCardUID = "";
+    CurrentSettings.PreviousCardUID = "";//CurrentCardUID;
+    CurrentSettings.CurrentCardUID = "";
     CurrentSettings.isCardPresent = false;
     CurrentSettings.isValidCardPresent = false;
     CurrentSettings.isMultipleCardsPresent = false;   
@@ -156,7 +156,8 @@ void loop(void) {
 
 }
 
-void ProcessEvent(String UID, int Action) { //Action 1 = card found, 2 = multiple cards found, 3 = valid card
+void ProcessEvent(String UID, int Action) { 
+  //Action 1 = card found, 2 = multiple cards found, 3 = valid card
 
 //block events happening too fast and causing the DFplayer to have a fit and reset
 
@@ -175,7 +176,7 @@ if (Action==1) { //a card has been removed, play a nice sound
   Serial.println("Card Removed");
   return;
 }
-if (Action==2) {  //multiple cards detected, play a fun warning sounds
+if (Action==2) {  //multiple cards detected, play a fun warning sound
    myMP3.playFolder(1, 7);
   Serial.println("Multiple Cards" + UID);
   return;
@@ -201,7 +202,7 @@ if (Action==3) { //A valid card presented event, process it.
   PTResult = isTrackCard(UID);
   if (PTResult >= 0) { //Found a valid music card / play it!
      myMP3.playFolder(1, 1);
-    delay(610);
+    delay(610); //ugly delaky while card noise playsouts. this was adjusted until it 'felt' right. 
      myMP3.stop();
     delay (CurrentSettings.DFPlayerProcessDelay);
      myMP3.playFolder(2, PTResult);
