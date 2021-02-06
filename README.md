@@ -8,5 +8,7 @@ https://www.banggood.com/PN532-NFC-RFID-Module-V3-Reader-Writer-Breakout-Board-F
 
 https://www.digikey.co.uk/product-detail/en/dfrobot/DFR0299/1738-1041-ND/6588463
 
+For arduino IDE, just rename main.cpp to main.ino (you'll only need these filed. make sure you have all the librarys included as per the header.
+
 Updated - end of track detection using the busy pin
 updated - Statue (musical chair mode, on/off using a control card)
