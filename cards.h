@@ -1,11 +1,14 @@
-#define ControlCardsARRAYSIZE 2
-String ControlCards[ControlCardsARRAYSIZE] = { "907221814","1161788653"}; //two volume cards
+define ControlCardsARRAYSIZE 3
+String ControlCards[ControlCardsARRAYSIZE] = { 
+"907221814","1161788653", // volume cards
+"9010721514"//Statue card
+}; 
 
 
 // vol,stop/start
 //#define TrackCardsARRAYSIZE 4
 //String TrackCards[TrackCardsARRAYSIZE] = { "212106553","36205853","1161788653","521088853"};
-#define TrackCardsARRAYSIZE 32
+#define TrackCardsARRAYSIZE 37
 String TrackCards[TrackCardsARRAYSIZE] = {
 "36205853",
 "212106553",
@@ -38,7 +41,12 @@ String TrackCards[TrackCardsARRAYSIZE] = {
 "49124821092100128",
 "6814010953",
 "422938293100128",
-"49511311493100128"
+"49511311493100128",
+"41031045893100129",
+"412311716292100129",
+"41279719492100129",
+"41511625093100128",
+"4201959093100129"
 };
 
 
